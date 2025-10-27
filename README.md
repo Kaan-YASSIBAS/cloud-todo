@@ -150,6 +150,8 @@ All services expose /healthz endpoints for readiness/liveness probes.
 Example probe snippet:
 
 yaml
+<<<<<<< HEAD
+=======
 livenessProbe:
   httpGet:
     path: /healthz
