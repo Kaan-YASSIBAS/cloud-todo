@@ -154,8 +154,8 @@ Kodu kopyala
 livenessProbe:
   httpGet:
     path: /healthz
-    port: 8000
-  initialDelaySeconds: 5
+    port: 8001
+  initialDelaySeconds: 10
   periodSeconds: 10
 
 
