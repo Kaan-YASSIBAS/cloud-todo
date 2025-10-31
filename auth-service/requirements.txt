@@ -1,7 +1,7 @@
 # FastAPI framework
 fastapi==0.115.0
 
-# ASGI server (production için Uvicorn)
+# ASGI server (For production deployment)
 uvicorn==0.30.6
 
 # Database ORM
@@ -20,7 +20,6 @@ pydantic_core==2.23.4
 
 # Email validation
 email-validator==2.2.0
-
 
 # MySQL connector (if using MySQL instead of SQLite)
 mysql-connector-python==9.0.0

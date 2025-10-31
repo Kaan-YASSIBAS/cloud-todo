@@ -1,6 +1,9 @@
 version: "3.9"
 
 services:
+  # ======================
+  # MySQL Database
+  # ======================
   mysql:
     image: mysql:8.0
     container_name: todo-mysql
@@ -11,7 +14,7 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
     ports:
-      - "3307:3306"
+      - "${MYSQL_HOST_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -20,6 +23,9 @@ services:
       timeout: 3s
       retries: 20
 
+  # ======================
+  # Auth Service
+  # ======================
   auth-service:
     build:
       context: ./auth-service
@@ -31,12 +37,46 @@ services:
     ports:
       - "8001:8001"
     environment:
-      # JWT settings
+      # JWT
       JWT_SECRET: ${JWT_SECRET}
-      ACCESS_EXPIRE_HOURS: "4"
+      ACCESS_EXPIRE_HOURS: ${ACCESS_EXPIRE_HOURS}
+      JWT_ALG: ${JWT_ALG}
 
-      # Database connection (MySQL service name = mysql)
+      # Database
       DATABASE_URL: "mysql+mysqlconnector://${DB_USER}:${DB_PASS}@mysql:3306/${DB_NAME}"
+
+      # Service Info
+      SERVICE_NAME: auth
+      PORT: 8001
+
+    restart: unless-stopped
+
+  # ======================
+  # Task Service
+  # ======================
+  task-service:
+    build:
+      context: ./task-service
+      dockerfile: Dockerfile
+    container_name: task-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    ports:
+      - "${TASK_HOST_PORT}:${TASK_PORT}"
+    environment:
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALG: ${JWT_ALG}
+
+      # Database connection
+      DATABASE_URL: "mysql+mysqlconnector://${DB_USER}:${DB_PASS}@mysql:3306/${DB_NAME}"
+
+      # Service Info
+      SERVICE_NAME: ${SERVICE_NAME}
+      PORT: ${TASK_PORT}
 
     restart: unless-stopped
 

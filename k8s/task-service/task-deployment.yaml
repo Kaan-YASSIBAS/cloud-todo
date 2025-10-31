@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-service
+  namespace: cloud-todo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-service
+  template:
+    metadata:
+      labels:
+        app: task-service
+    spec:
+      containers:
+        - name: task-service
+          image: kaanyassibas/cloud-todo-task-service:v1.0.0   # <- Update the tag there if it is changed.
+          ports:
+            - containerPort: 8002
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: task-secret          # auth-secret can be also used.
+                  key: JWT_SECRET
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: task-secret
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: task-secret
+                  key: DB_PASS
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: task-config          # auth-config can be also used.
+                  key: DB_NAME
+            - name: DATABASE_URL
+              value: "mysql+mysqlconnector://$(DB_USER):$(DB_PASS)@mysql:3306/$(DB_NAME)"
+            # Optional CORS (If we use it in app)
+            - name: CORS_ALLOW_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: task-config
+                  key: CORS_ALLOW_ORIGINS
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8002
+            initialDelaySeconds: 5
+            periodSeconds: 5
