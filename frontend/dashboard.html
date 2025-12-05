@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADKA – Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="bg"></div>
+
+  <div class="layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="left-sidebar">
+      <h2 class="logo">ADKA</h2>
+
+      <div class="weekly-block">
+        <h3>Weekly</h3>
+        <ul id="weeklyList" class="weekly-list"></ul>
+      </div>
+
+      <div class="add-task">
+        <h3>Add New Task</h3>
+
+        <input id="taskTitle" placeholder="Task title" />
+        <textarea id="taskDesc" placeholder="Description"></textarea>
+
+        <label>Date</label>
+        <input id="taskDate" type="date" />
+
+        <label>Time</label>
+        <input id="taskTime" type="time" />
+
+        <button onclick="createNewTask()" class="btn-add">Add</button>
+      </div>
+    </aside>
+
+    <!-- MAIN TIMELINE PANEL -->
+    <main class="timeline-panel">
+
+      <div class="top-date-row">
+        <button onclick="prevWeek()" class="week-btn">&lt;</button>
+
+        <div id="weekRange" class="week-range"></div>
+
+        <button onclick="nextWeek()" class="week-btn">&gt;</button>
+      </div>
+
+      <div class="day-selector" id="daySelector"></div>
+
+      <!-- TIMELINE -->
+      <div id="timeline" class="timeline"></div>
+
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="right-sidebar">
+      <div class="profile-card">
+        <img id="profileAvatar" src="assets/user-icon.svg" class="avatar" />
+
+        <h3 id="profileName">User</h3>
+        <p class="email" id="profileEmail"></p>
+      </div>
+
+      <div class="goal-card">
+        <h4>Goal Progress</h4>
+        <div class="progress-circle">
+          <span id="progressValue">0%</span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <script src="dashboard.js"></script>
+  <script src="main.js"></script>
+  <!-- EDIT MODAL -->
+<div id="editModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Edit Task</h3>
+
+    <label>Title</label>
+    <input id="editTitle" type="text">
+
+    <label>Description</label>
+    <textarea id="editDesc"></textarea>
+
+    <label>Date</label>
+    <input id="editDate" type="date">
+
+    <label>Time</label>
+    <input id="editTime" type="time">
+
+    <div class="modal-actions">
+      <button onclick="saveEdit()" class="btn-save">Save</button>
+      <button onclick="closeModal()" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
