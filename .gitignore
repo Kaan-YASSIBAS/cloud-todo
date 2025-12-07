@@ -22,3 +22,6 @@ alembic/versions/*
 
 # Kubernetes secrets
 *.secret.yaml
+
+# Vagrant
+.vagrant/
