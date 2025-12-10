@@ -1,5 +1,4 @@
-const AUTH_URL = "http://localhost:8001";
-const TASK_URL = "http://localhost:8002";
+const { AUTH_URL, TASK_URL } = window.APP_CONFIG;
 
 function getToken() {
   return localStorage.getItem("token");
