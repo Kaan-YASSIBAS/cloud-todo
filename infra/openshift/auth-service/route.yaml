@@ -1,0 +1,12 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: auth-service
+spec:
+  to:
+    kind: Service
+    name: auth-service
+  port:
+    targetPort: http
+  tls:
+    termination: edge
