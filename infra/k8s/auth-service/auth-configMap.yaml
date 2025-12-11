@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: auth-config
-  namespace: cloud-todo
-data:
-  DB_NAME: tododb
-  ACCESS_EXPIRE_HOURS: "4"
