@@ -7,13 +7,18 @@ const { AUTH_URL, TASK_URL } = window.APP_CONFIG;
    GLOBAL STATE
 ====================================== */
 let currentWeekStart = getMonday(new Date());
-let selectedDay = new Date(currentWeekStart);
+let selectedDay = new Date(currentWeekStart); // Default: Monday of current week
+// Eğer bugün o hafta içindeyse, bugünü seçelim:
+const today = new Date();
+if (today >= currentWeekStart && today < new Date(currentWeekStart.getTime() + 7*86400000)) {
+  selectedDay = today;
+}
+
 let editingTaskId = null;
-let draggedTaskId = null;
-let lastTasks = [];   // son çekilen task listesi
+let lastTasks = [];
 
 /* ======================================
-   AUTH CHECK
+   AUTH CHECK & LOGOUT
 ====================================== */
 async function checkAuth() {
   const token = localStorage.getItem("token");
@@ -27,19 +32,19 @@ async function checkAuth() {
       headers: { "Authorization": "Bearer " + token }
     });
 
-    if (!res.ok) {
-      localStorage.removeItem("token");
-      window.location.href = "index.html";
-      return;
-    }
+    if (!res.ok) throw new Error("Auth failed");
 
     const user = await res.json();
     document.getElementById("profileName").textContent = user.username;
-    document.getElementById("profileEmail").textContent = user.email || "";
+    document.getElementById("profileEmail").textContent = user.email || "user@example.com";
   } catch {
-    localStorage.removeItem("token");
-    window.location.href = "index.html";
+    logout();
   }
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "index.html";
 }
 
 /* ======================================
@@ -69,16 +74,22 @@ function loadWeek() {
   const weekRangeEl = document.getElementById("weekRange");
   const daySelector = document.getElementById("daySelector");
 
-  weekRangeEl.textContent =
-    currentWeekStart.toDateString() + " - " +
-    new Date(currentWeekStart.getTime() + 6 * 86400000).toDateString();
+  const endOfWeek = new Date(currentWeekStart.getTime() + 6 * 86400000);
+  
+  // Format: "Dec 22 - Dec 28"
+  const options = { month: 'short', day: 'numeric' };
+  weekRangeEl.textContent = 
+    currentWeekStart.toLocaleDateString('en-US', options) + " - " + 
+    endOfWeek.toLocaleDateString('en-US', options);
 
   daySelector.innerHTML = "";
 
   for (let i = 0; i < 7; i++) {
     const date = new Date(currentWeekStart.getTime() + i * 86400000);
     const div = document.createElement("div");
-    div.textContent = date.toDateString().slice(0, 3);
+    
+    // Sadece gün ismini göster (Mon, Tue)
+    div.textContent = date.toLocaleDateString('en-US', { weekday: 'short' });
 
     if (date.toDateString() === selectedDay.toDateString()) {
       div.classList.add("active");
@@ -86,8 +97,8 @@ function loadWeek() {
 
     div.onclick = () => {
       selectedDay = date;
-      loadWeek();
-      loadTasks();
+      loadWeek(); // Re-render active class
+      renderTasksGrid(); // Re-render tasks for new day
     };
 
     daySelector.appendChild(div);
@@ -102,26 +113,28 @@ function loadWeek() {
 async function loadTasks() {
   const token = localStorage.getItem("token");
 
-  const res = await fetch(`${TASK_URL}/tasks`, {
-    headers: { "Authorization": "Bearer " + token }
-  });
+  try {
+    const res = await fetch(`${TASK_URL}/tasks`, {
+      headers: { "Authorization": "Bearer " + token }
+    });
 
-  if (res.status === 401) {
-    localStorage.removeItem("token");
-    window.location.href = "index.html";
-    return;
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+
+    const data = await res.json();
+    lastTasks = data.items || [];
+    
+    renderWeeklySummary(lastTasks);
+    renderTasksGrid();
+  } catch (err) {
+    console.error("Failed to load tasks", err);
   }
-
-  const data = await res.json();
-  const tasks = data.items;
-  lastTasks = tasks;   // global olarak sakla
-
-  renderWeeklySummary(tasks);
-  renderTimeline(tasks);
 }
 
 /* ======================================
-   LEFT SIDEBAR — WEEKLY SUMMARY
+   RENDER: WEEKLY SUMMARY (Sidebar)
 ====================================== */
 function renderWeeklySummary(tasks) {
   const list = document.getElementById("weeklyList");
@@ -137,73 +150,108 @@ function renderWeeklySummary(tasks) {
     });
 
     const done = dayTasks.filter(t => t.status === "done").length;
+    const total = dayTasks.length;
 
+    // Sadece görevi olan günleri veya bugünü gösterelim mi? 
+    // Hayır, hepsini listeleyelim, tasarımda güzel durur.
     const li = document.createElement("li");
-    li.textContent = `${date.toDateString().slice(0,3)} – ${dayTasks.length} tasks (${done} done)`;
+    li.innerHTML = `
+      <span>${date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+      <span style="opacity:0.6">${done}/${total} done</span>
+    `;
     list.appendChild(li);
   }
 }
 
 /* ======================================
-   TIMELINE RENDER
+   RENDER: TASK GRID (Kart Görünümü)
 ====================================== */
-function renderTimeline(tasks) {
-  const timeline = document.getElementById("timeline");
-  timeline.innerHTML = "";
+function renderTasksGrid() {
+  const grid = document.getElementById("taskGrid");
+  grid.innerHTML = "";
 
-  for (let hour = 0; hour < 24; hour++) {
-    const hourDiv = document.createElement("div");
-    hourDiv.className = "timeline-hour";
-    hourDiv.dataset.time = hour.toString().padStart(2, '0') + ":00";
+  // Filtrele: Sadece seçili günün taskları
+  const daysTasks = lastTasks.filter(task => {
+    if (!task.due_date) return false;
+    const date = new Date(task.due_date);
+    return date.toDateString() === selectedDay.toDateString();
+  });
 
-    hourDiv.setAttribute("ondragover", "allowDrop(event)");
-    hourDiv.setAttribute("ondrop", `dropTask(event, ${hour})`);
+  // Sırala: Saate göre
+  daysTasks.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
 
-    timeline.appendChild(hourDiv);
+  if (daysTasks.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; color: #999; margin-top: 40px;">
+        <p>No tasks for this day. Enjoy your free time!</p>
+      </div>
+    `;
+    updateProgress(lastTasks); 
+    return;
   }
 
-  tasks.forEach(task => {
-    if (!task.due_date) return;
-
+  daysTasks.forEach((task, index) => {
     const date = new Date(task.due_date);
-    if (date.toDateString() !== selectedDay.toDateString()) return;
-
-    const hour = date.getHours();
-    const hourBlock = timeline.querySelector(`.timeline-hour:nth-child(${hour + 1})`);
-
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
     const card = document.createElement("div");
-    card.className = "task-card";
-    card.draggable = true;
-
-    card.setAttribute("ondragstart", `dragStart(event, ${task.id})`);
+    // Rastgele pastel renk sınıfı atayalım (indexe göre döngüsel)
+    const colorClass = `pastel-${(index % 5) + 1}`;
+    
+    card.className = `task-card ${colorClass}`;
+    if(task.status === 'done') {
+      card.style.opacity = "0.6";
+      card.style.transform = "scale(0.98)";
+    }
 
     card.innerHTML = `
-      <div class="task-time">${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+      <div class="task-header">
+        <span class="task-time-badge">${timeStr}</span>
+        ${task.status === 'done' ? '<span>✅</span>' : ''}
+      </div>
+      
       <div class="task-title">${task.title}</div>
-      <div class="task-desc">${task.description || ""}</div>
+      <div class="task-desc">${task.description || "No description"}</div>
 
-      <div class="task-actions">
-        <button class="btn-complete" onclick="markDone(${task.id})">✓</button>
-        <button class="btn-edit" onclick="openEdit(${task.id})">✎</button>
-        <button class="btn-delete" onclick="deleteTask(${task.id})">🗑</button>
+      <div class="card-footer">
+        <button class="icon-btn btn-done" onclick="markDone(${task.id})" title="Complete">
+          ✔
+        </button>
+        <button class="icon-btn btn-edit" onclick="openEdit(${task.id})" title="Edit">
+          ✎
+        </button>
+        <button class="icon-btn btn-del" onclick="deleteTask(${task.id})" title="Delete">
+          🗑
+        </button>
       </div>
     `;
 
-    hourBlock.appendChild(card);
+    grid.appendChild(card);
   });
 
-  updateProgress(tasks);
+  updateProgress(lastTasks);
 }
 
 /* ======================================
    PROGRESS RING
 ====================================== */
 function updateProgress(tasks) {
+  // Sadece bugünün progressi mi yoksa genel mi?
+  // Genelde kullanıcı "bu haftaki" veya "tüm" başarısını görmek ister.
+  // Sidebar statik olduğu için TÜM tasklar üzerinden hesaplayalım.
+  
   const done = tasks.filter(t => t.status === "done").length;
   const total = tasks.length;
-  const percent = total === 0 ? 0 : Math.round(done / total * 100);
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
 
   document.getElementById("progressValue").textContent = percent + "%";
+  
+  // Progress bar rengini dinamik yapabiliriz (opsiyonel)
+  const circle = document.querySelector('.progress-circle');
+  if(circle) {
+    // Basit bir stil güncellemesi
+    circle.style.borderTopColor = percent === 100 ? '#2ecc71' : '#A3E635';
+  }
 }
 
 /* ======================================
@@ -212,39 +260,56 @@ function updateProgress(tasks) {
 async function createNewTask() {
   const title = document.getElementById("taskTitle").value;
   const desc = document.getElementById("taskDesc").value;
-  const date = document.getElementById("taskDate").value;
-  const time = document.getElementById("taskTime").value;
+  let date = document.getElementById("taskDate").value;
+  let time = document.getElementById("taskTime").value;
 
-  if (!title || !date || !time) {
-    alert("Please fill all required fields");
+  if (!title) {
+    alert("Please enter a task title");
     return;
   }
+
+  // Eğer tarih seçilmediyse, o anki seçili günü baz alalım
+  if (!date) {
+    const year = selectedDay.getFullYear();
+    const month = String(selectedDay.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDay.getDate()).padStart(2, '0');
+    date = `${year}-${month}-${day}`;
+  }
+  
+  if (!time) time = "09:00"; // Default time
 
   const fullDate = `${date}T${time}:00`;
   const token = localStorage.getItem("token");
 
-  await fetch(`${TASK_URL}/tasks`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
-    },
-    body: JSON.stringify({
-      title,
-      description: desc,
-      due_date: fullDate
-    })
-  });
-
-  loadTasks();
+  try {
+    await fetch(`${TASK_URL}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({
+        title,
+        description: desc,
+        due_date: fullDate
+      })
+    });
+    
+    // Clear inputs
+    document.getElementById("taskTitle").value = "";
+    document.getElementById("taskDesc").value = "";
+    
+    loadTasks();
+  } catch (err) {
+    alert("Error creating task");
+  }
 }
 
 /* ======================================
-   EDIT — OPEN MODAL
+   EDIT / DELETE / MARK DONE
 ====================================== */
 function openEdit(id) {
   editingTaskId = id;
-
   const task = lastTasks.find(t => t.id === id);
   if (!task) return;
 
@@ -254,21 +319,21 @@ function openEdit(id) {
   if (task.due_date) {
     const d = new Date(task.due_date);
     document.getElementById("editDate").value = d.toISOString().slice(0, 10);
-    document.getElementById("editTime").value = d.toTimeString().slice(0, 5);
+    // Local time string için hack:
+    const hours = String(d.getHours()).padStart(2,'0');
+    const minutes = String(d.getMinutes()).padStart(2,'0');
+    document.getElementById("editTime").value = `${hours}:${minutes}`;
   }
 
   document.getElementById("editModal").classList.remove("hidden");
 }
 
-/* CLOSE MODAL */
 function closeModal() {
   document.getElementById("editModal").classList.add("hidden");
 }
 
-/* SAVE EDIT */
 async function saveEdit() {
   const token = localStorage.getItem("token");
-
   const title = document.getElementById("editTitle").value;
   const desc = document.getElementById("editDesc").value;
   const date = document.getElementById("editDate").value;
@@ -277,8 +342,7 @@ async function saveEdit() {
   let body = { title, description: desc };
 
   if (date && time) {
-    const fullDate = `${date}T${time}:00`;
-    body.due_date = fullDate;
+    body.due_date = `${date}T${time}:00`;
   }
 
   await fetch(`${TASK_URL}/tasks/${editingTaskId}`, {
@@ -294,12 +358,9 @@ async function saveEdit() {
   loadTasks();
 }
 
-/* ======================================
-   MARK DONE
-====================================== */
 async function markDone(id) {
   const token = localStorage.getItem("token");
-
+  // Toggle logic (eğer zaten done ise geri alabiliriz, şimdilik sadece done yapıyoruz)
   await fetch(`${TASK_URL}/tasks/${id}`, {
     method: "PATCH",
     headers: {
@@ -312,63 +373,13 @@ async function markDone(id) {
   loadTasks();
 }
 
-/* ======================================
-   DELETE TASK
-====================================== */
 async function deleteTask(id) {
-  if (!confirm("Delete this task?")) return;
-
+  if (!confirm("Are you sure you want to delete this task?")) return;
   const token = localStorage.getItem("token");
-
   await fetch(`${TASK_URL}/tasks/${id}`, {
     method: "DELETE",
-    headers: {
-      "Authorization": "Bearer " + token
-    }
+    headers: { "Authorization": "Bearer " + token }
   });
-
-  loadTasks();
-}
-
-/* ======================================
-   DRAG & DROP
-====================================== */
-function dragStart(ev, id) {
-  draggedTaskId = id;
-}
-
-function allowDrop(ev) {
-  ev.preventDefault();
-}
-
-async function dropTask(ev, hour) {
-  ev.preventDefault();
-
-  const token = localStorage.getItem("token");
-
-  const newDate = new Date(selectedDay);
-  newDate.setHours(hour);
-  newDate.setMinutes(0);
-
-  // YYYY-MM-DDTHH:MM:00 formatında local datetime
-  const yyyy = newDate.getFullYear();
-  const mm = String(newDate.getMonth() + 1).padStart(2, "0");
-  const dd = String(newDate.getDate()).padStart(2, "0");
-  const hh = String(newDate.getHours()).padStart(2, "0");
-  const mi = String(newDate.getMinutes()).padStart(2, "0");
-  const fullDate = `${yyyy}-${mm}-${dd}T${hh}:${mi}:00`;
-
-  await fetch(`${TASK_URL}/tasks/${draggedTaskId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
-    },
-    body: JSON.stringify({
-      due_date: fullDate
-    })
-  });
-
   loadTasks();
 }
 
@@ -378,5 +389,5 @@ async function dropTask(ev, hour) {
 window.onload = () => {
   checkAuth();
   loadWeek();
-  loadTasks();
+  // loadTasks is called inside loadWeek
 };
