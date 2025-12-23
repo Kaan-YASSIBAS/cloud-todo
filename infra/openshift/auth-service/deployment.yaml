@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: kaanyassibas/cloud-todo:auth-service-v1.0.0
+          image: kaanyassibas/cloud-todo:auth-service-v1.0.7
           imagePullPolicy: Always
           ports:
             - containerPort: 8001
@@ -28,6 +28,8 @@ spec:
           env:
             - name: SERVICE_NAME
               value: "auth-service"
+            - name: LOKI_URL
+              value: "http://loki:3100/loki/api/v1/push"
             - name: PORT
               value: "8001"
             - name: JWT_SECRET

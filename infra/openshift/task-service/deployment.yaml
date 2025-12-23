@@ -14,12 +14,14 @@ spec:
     spec:
       containers:
         - name: task-service
-          image: kaanyassibas/cloud-todo:task-service-v1.0.0
+          image: kaanyassibas/cloud-todo:task-service-v1.0.2
           ports:
             - containerPort: 8002
           env:
             - name: SERVICE_NAME
               value: "task-service"
+            - name: LOKI_URL
+              value: "http://loki:3100/loki/api/v1/push"
             - name: PORT
               value: "8002"
             - name: JWT_SECRET

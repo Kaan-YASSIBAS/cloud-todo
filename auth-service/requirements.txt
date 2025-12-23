@@ -12,3 +12,8 @@ pydantic[email]
 python-dotenv==1.0.1
 cryptography==43.0.3
 
+prometheus-fastapi-instrumentator==7.1.0
+prometheus-client==0.21.0
+
+python-logging-loki
+

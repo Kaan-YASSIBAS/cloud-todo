@@ -9,7 +9,20 @@ from .db import Base, engine, get_db
 from .models import Task
 from .schemas import TaskCreate, TaskUpdate, TaskOut, PaginatedTasks
 from .security import require_auth
-from .logging_middleware import setup_logging
+
+
+from prometheus_fastapi_instrumentator import Instrumentator
+
+from app.logging_loki_config import setup_logging
+
+import logging
+
+
+logger = logging.getLogger("task")
+
+setup_logging()
+
+logger.info("Task service started (Loki logging enabled)")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +30,9 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Task Service", lifespan=lifespan)
+
+Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,10 +42,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-setup_logging(app)
+# ========== ENDPOINTS ==========
 
 @app.get("/healthz")
 def healthz():
+    logger.info("healthz called")
     return {"status": "ok", "service": settings.SERVICE_NAME, "time": datetime.now(UTC)}
 
 @app.get("/tasks", response_model=PaginatedTasks)

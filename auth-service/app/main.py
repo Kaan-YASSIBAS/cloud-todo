@@ -11,11 +11,22 @@ from .db import Base, engine, get_db
 from .models import User
 from .schemas import RegisterIn, LoginIn, UserOut
 from .security import create_access_token, verify_token, require_auth
-from .logging_middleware import setup_logging
+
+from prometheus_fastapi_instrumentator import Instrumentator
+
+from app.logging_loki_config import setup_logging
+
+import logging
+
+
+logger = logging.getLogger("auth")
+logger.info("Auth service started (Loki logging enabled)")
+
+setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # DB tabloları
+
     Base.metadata.create_all(bind=engine)
 
     # Demo user
@@ -37,6 +48,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Auth Service", lifespan=lifespan)
 
+Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
@@ -46,13 +59,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Logging middleware
-setup_logging(app)
-
 # ========== ENDPOINTS ==========
 
 @app.get("/healthz")
 def healthz():
+    logger.info("healthz called")
     return {"status": "ok", "service": settings.SERVICE_NAME, "time": datetime.now(UTC)}
 
 @app.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserOut)
