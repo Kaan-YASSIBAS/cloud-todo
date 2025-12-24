@@ -7,8 +7,7 @@ const { AUTH_URL, TASK_URL } = window.APP_CONFIG;
    GLOBAL STATE
 ====================================== */
 let currentWeekStart = getMonday(new Date());
-let selectedDay = new Date(currentWeekStart); // Default: Monday of current week
-// Eğer bugün o hafta içindeyse, bugünü seçelim:
+let selectedDay = new Date(currentWeekStart);
 const today = new Date();
 if (today >= currentWeekStart && today < new Date(currentWeekStart.getTime() + 7*86400000)) {
   selectedDay = today;
@@ -76,7 +75,6 @@ function loadWeek() {
 
   const endOfWeek = new Date(currentWeekStart.getTime() + 6 * 86400000);
   
-  // Format: "Dec 22 - Dec 28"
   const options = { month: 'short', day: 'numeric' };
   weekRangeEl.textContent = 
     currentWeekStart.toLocaleDateString('en-US', options) + " - " + 
@@ -88,7 +86,6 @@ function loadWeek() {
     const date = new Date(currentWeekStart.getTime() + i * 86400000);
     const div = document.createElement("div");
     
-    // Sadece gün ismini göster (Mon, Tue)
     div.textContent = date.toLocaleDateString('en-US', { weekday: 'short' });
 
     if (date.toDateString() === selectedDay.toDateString()) {
@@ -97,8 +94,8 @@ function loadWeek() {
 
     div.onclick = () => {
       selectedDay = date;
-      loadWeek(); // Re-render active class
-      renderTasksGrid(); // Re-render tasks for new day
+      loadWeek();
+      renderTasksGrid();
     };
 
     daySelector.appendChild(div);
@@ -152,8 +149,6 @@ function renderWeeklySummary(tasks) {
     const done = dayTasks.filter(t => t.status === "done").length;
     const total = dayTasks.length;
 
-    // Sadece görevi olan günleri veya bugünü gösterelim mi? 
-    // Hayır, hepsini listeleyelim, tasarımda güzel durur.
     const li = document.createElement("li");
     li.innerHTML = `
       <span>${date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
@@ -170,14 +165,12 @@ function renderTasksGrid() {
   const grid = document.getElementById("taskGrid");
   grid.innerHTML = "";
 
-  // Filtrele: Sadece seçili günün taskları
   const daysTasks = lastTasks.filter(task => {
     if (!task.due_date) return false;
     const date = new Date(task.due_date);
     return date.toDateString() === selectedDay.toDateString();
   });
 
-  // Sırala: Saate göre
   daysTasks.sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
 
   if (daysTasks.length === 0) {
@@ -186,7 +179,7 @@ function renderTasksGrid() {
         <p>No tasks for this day. Enjoy your free time!</p>
       </div>
     `;
-    updateProgress(lastTasks); 
+    // updateProgress çağrısı kaldırıldı çünkü widget silindi
     return;
   }
 
@@ -195,8 +188,8 @@ function renderTasksGrid() {
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     const card = document.createElement("div");
-    // Rastgele pastel renk sınıfı atayalım (indexe göre döngüsel)
-    const colorClass = `pastel-${(index % 5) + 1}`;
+    // YENİ PALETE GÖRE 7 RENK DÖNGÜSÜ
+    const colorClass = `pastel-${(index % 7) + 1}`;
     
     card.className = `task-card ${colorClass}`;
     if(task.status === 'done') {
@@ -229,29 +222,7 @@ function renderTasksGrid() {
     grid.appendChild(card);
   });
 
-  updateProgress(lastTasks);
-}
-
-/* ======================================
-   PROGRESS RING
-====================================== */
-function updateProgress(tasks) {
-  // Sadece bugünün progressi mi yoksa genel mi?
-  // Genelde kullanıcı "bu haftaki" veya "tüm" başarısını görmek ister.
-  // Sidebar statik olduğu için TÜM tasklar üzerinden hesaplayalım.
-  
-  const done = tasks.filter(t => t.status === "done").length;
-  const total = tasks.length;
-  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-
-  document.getElementById("progressValue").textContent = percent + "%";
-  
-  // Progress bar rengini dinamik yapabiliriz (opsiyonel)
-  const circle = document.querySelector('.progress-circle');
-  if(circle) {
-    // Basit bir stil güncellemesi
-    circle.style.borderTopColor = percent === 100 ? '#2ecc71' : '#A3E635';
-  }
+  // updateProgress çağrısı kaldırıldı
 }
 
 /* ======================================
@@ -268,7 +239,6 @@ async function createNewTask() {
     return;
   }
 
-  // Eğer tarih seçilmediyse, o anki seçili günü baz alalım
   if (!date) {
     const year = selectedDay.getFullYear();
     const month = String(selectedDay.getMonth() + 1).padStart(2, '0');
@@ -276,7 +246,7 @@ async function createNewTask() {
     date = `${year}-${month}-${day}`;
   }
   
-  if (!time) time = "09:00"; // Default time
+  if (!time) time = "09:00";
 
   const fullDate = `${date}T${time}:00`;
   const token = localStorage.getItem("token");
@@ -295,7 +265,6 @@ async function createNewTask() {
       })
     });
     
-    // Clear inputs
     document.getElementById("taskTitle").value = "";
     document.getElementById("taskDesc").value = "";
     
@@ -319,7 +288,6 @@ function openEdit(id) {
   if (task.due_date) {
     const d = new Date(task.due_date);
     document.getElementById("editDate").value = d.toISOString().slice(0, 10);
-    // Local time string için hack:
     const hours = String(d.getHours()).padStart(2,'0');
     const minutes = String(d.getMinutes()).padStart(2,'0');
     document.getElementById("editTime").value = `${hours}:${minutes}`;
@@ -360,7 +328,6 @@ async function saveEdit() {
 
 async function markDone(id) {
   const token = localStorage.getItem("token");
-  // Toggle logic (eğer zaten done ise geri alabiliriz, şimdilik sadece done yapıyoruz)
   await fetch(`${TASK_URL}/tasks/${id}`, {
     method: "PATCH",
     headers: {
@@ -389,5 +356,4 @@ async function deleteTask(id) {
 window.onload = () => {
   checkAuth();
   loadWeek();
-  // loadTasks is called inside loadWeek
 };

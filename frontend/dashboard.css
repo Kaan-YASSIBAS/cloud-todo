@@ -1,18 +1,20 @@
 /* ---------- GLOBAL ---------- */
 :root {
-  --bg-color: #FDFBF7; /* Krem/Kağıt rengi */
+  --bg-color: #FDFBF7;
   --sidebar-bg: #FFFFFF;
   --text-main: #2D2D2D;
   --text-muted: #888888;
   --accent: #1e1e1e;
   --border-radius: 20px;
   
-  /* Pastel Palette */
-  --card-1: #F4DCD6; /* Soft Pink */
-  --card-2: #E2F0CB; /* Soft Green */
-  --card-3: #D8E2DC; /* Soft Blue/Grey */
-  --card-4: #FFE5D9; /* Soft Peach */
-  --card-5: #E0DAFE; /* Soft Purple */
+  /* YENİ "MATCHA STRAWBERRY" PALETİ */
+  --card-1: #F4C7D0; /* Açık Pembe */
+  --card-2: #9FAA74; /* Fıstık Yeşili */
+  --card-3: #FCEBF1; /* Çok Açık Pembe */
+  --card-4: #ECE3D2; /* Krem/Bej */
+  --card-5: #C66F80; /* Koyu Gül Kurusu */
+  --card-6: #4A6644; /* Koyu Matcha Yeşili */
+  --card-7: #D7DAB3; /* Açık Yeşil/Sarı */
 }
 
 body {
@@ -27,7 +29,7 @@ body {
 /* Layout Grid */
 .layout {
   display: grid;
-  grid-template-columns: 260px 1fr 280px;
+  grid-template-columns: 280px 1fr 280px; /* Sol menüyü biraz genişlettik */
   height: 100vh;
   gap: 0;
 }
@@ -73,7 +75,20 @@ body {
   justify-content: space-between;
 }
 
-/* Add Task Form */
+/* --- YENİ: VURGULANMIŞ ADD TASK KARTI --- */
+.highlighted-card {
+  background: var(--card-3); /* Çok açık pembe arka plan */
+  padding: 25px;
+  border-radius: 20px;
+  border: 2px solid var(--card-1); /* Açık pembe çerçeve */
+  box-shadow: 0 8px 20px rgba(198, 111, 128, 0.1); /* Hafif pembe gölge */
+}
+.highlighted-card h3 {
+  color: var(--card-5); /* Başlık rengi koyu gül kurusu */
+  font-weight: 700;
+}
+
+/* Add Task Form Inputs */
 .add-task-form input,
 .add-task-form textarea {
   width: 100%;
@@ -87,10 +102,10 @@ body {
   font-size: 13px;
   transition: 0.2s;
 }
-
+/* Input odaklanınca çerçeve rengi palete uyumlu olsun */
 .add-task-form input:focus, .add-task-form textarea:focus {
   outline: none;
-  border-color: #bbb;
+  border-color: var(--card-1);
 }
 
 .date-time-row {
@@ -100,7 +115,7 @@ body {
 
 .btn-add {
   width: 100%;
-  background: var(--text-main);
+  background: var(--card-5); /* Buton rengi koyu gül kurusu */
   color: white;
   padding: 12px;
   border-radius: 12px;
@@ -110,7 +125,8 @@ body {
   margin-top: 5px;
   transition: 0.2s;
 }
-.btn-add:hover { background: #000; }
+.btn-add:hover { background: var(--card-6); /* Hover'da koyu yeşil */ }
+
 
 /* ---------- MAIN CONTENT ---------- */
 .main-content {
@@ -182,7 +198,7 @@ body {
   border: 1px solid transparent;
 }
 .day-selector div:hover {
-  border-color: #eee;
+  border-color: var(--card-2);
 }
 .day-selector .active {
   background: var(--text-main);
@@ -190,7 +206,7 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* ---------- TASK GRID (NEW!) ---------- */
+/* ---------- TASK GRID ---------- */
 .task-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -211,6 +227,7 @@ body {
   cursor: default;
   position: relative;
   overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.05); /* Hafif bir çerçeve ekledik */
 }
 
 .task-card:hover {
@@ -218,12 +235,20 @@ body {
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
-/* Pastel Variations */
+/* YENİ RENK PALETİ SINIFLARI */
 .pastel-1 { background-color: var(--card-1); }
 .pastel-2 { background-color: var(--card-2); }
 .pastel-3 { background-color: var(--card-3); }
 .pastel-4 { background-color: var(--card-4); }
-.pastel-5 { background-color: var(--card-5); }
+.pastel-5 { background-color: var(--card-5); color: white; } /* Koyu renklerde metni beyaz yap */
+.pastel-6 { background-color: var(--card-6); color: white; }
+.pastel-7 { background-color: var(--card-7); }
+
+/* Koyu renkli kartlarda başlık ve ikon renklerini aç */
+.pastel-5 .task-title, .pastel-6 .task-title { color: white; }
+.pastel-5 .task-desc, .pastel-6 .task-desc { color: rgba(255,255,255,0.8); }
+.pastel-5 .task-time-badge, .pastel-6 .task-time-badge { background: rgba(0,0,0,0.2); color: white; }
+
 
 .task-header {
   display: flex;
@@ -275,11 +300,12 @@ body {
   background: rgba(255,255,255,0.7);
   transition: 0.2s;
   font-size: 14px;
+  color: #555;
 }
-.icon-btn:hover { background: white; transform: scale(1.1); }
-.btn-done { color: #2ecc71; }
-.btn-edit { color: #f1c40f; }
-.btn-del { color: #e74c3c; }
+.icon-btn:hover { background: white; transform: scale(1.1); color: #000; }
+.btn-done:hover { color: #2ecc71; }
+.btn-edit:hover { color: #f1c40f; }
+.btn-del:hover { color: #e74c3c; }
 
 
 /* ---------- RIGHT SIDEBAR ---------- */
@@ -288,7 +314,8 @@ body {
   padding: 30px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start; /* Widget gidince yukarı yaslansın */
+  gap: 30px;
 }
 
 .profile-section {
@@ -335,40 +362,9 @@ body {
   color: white;
 }
 
-/* Widgets */
-.widget-card {
-  background: var(--text-main);
-  color: white;
-  padding: 25px;
-  border-radius: 24px;
-  text-align: center;
-}
+/* GOAL WIDGET STİLLERİ SİLİNDİ */
 
-.widget-card h4 {
-  margin-top: 0;
-  font-weight: 500;
-  opacity: 0.9;
-}
-
-.progress-circle {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 6px solid rgba(255,255,255,0.2);
-  border-top-color: #A3E635; /* Lime green */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 auto 10px auto;
-}
-.progress-note {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-/* ---------- MODAL ---------- */
+/* ---------- MODAL (Aynı) ---------- */
 .modal {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;

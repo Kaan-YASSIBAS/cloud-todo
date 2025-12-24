@@ -1,50 +1,83 @@
+/* ---------- GLOBAL / VARIABLES ---------- */
+:root {
+  /* TaskBerry Renk Paleti */
+  --bg-gradient-1: #FCEBF1; /* Çok Açık Pembe */
+  --bg-gradient-2: #ECE3D2; /* Krem/Bej */
+  --card-bg: #FFFFFF;
+  --text-main: #2D2D2D;
+  --text-muted: #888888;
+  --accent-color: #C66F80; /* Koyu Gül Kurusu */
+  --accent-hover: #4A6644; /* Koyu Matcha Yeşili */
+  --error-color: #e74c3c;
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: "Poppins", sans-serif;
+  height: 100vh;
+  overflow: hidden; /* Kaydırma çubuğunu engeller */
 }
 
-.bg {
-  position: fixed;
+/* Tüm sayfayı kaplayan kapsayıcı */
+.login-page {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+  display: flex; /* İçeriği tam ortalamak için */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Beyaz Kart */
+.login-card {
+  background: var(--card-bg);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px; /* Çok geniş olmasın */
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+  text-align: center;
+  position: relative;
+}
+
+/* Header Kısmı */
+.icon-circle {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 15px;
+  padding: 5px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border: 2px solid var(--bg-gradient-1);
+}
+
+.user-avatar {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #d9afd9 0%, #97d9e1 100%);
-  filter: blur(3px);
-  z-index: -1;
-}
-
-.login-container {
-  width: 380px;
-  padding: 40px;
-  margin: 120px auto;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 18px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  text-align: center;
-}
-
-.icon-circle {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 20px;
-  background: #ffffff30;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: cover;
 }
 
 .title {
-  font-size: 24px;
-  margin-bottom: 30px;
-  font-weight: 500;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-main);
 }
 
 .title span {
-  color: #6C63FF;
+  color: var(--accent-color);
 }
 
+.subtitle {
+  margin: 5px 0 30px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Form Alanları */
 .input-group {
   text-align: left;
   margin-bottom: 20px;
@@ -52,34 +85,56 @@ body {
 
 .input-group label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 .input-group input {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  background: #ffffff90;
+  box-sizing: border-box; /* Padding taşmasın diye */
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid #f0f0f0;
+  background: #fafafa;
+  font-family: inherit;
+  font-size: 14px;
+  transition: 0.3s;
 }
 
-.login-btn {
+.input-group input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  background: white;
+}
+
+/* Login Butonu */
+.btn-login {
   width: 100%;
-  padding: 14px;
+  padding: 15px;
   margin-top: 10px;
-  background: #6C63FF;
+  background: var(--accent-color);
   color: white;
   border: none;
   border-radius: 12px;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.3s;
 }
 
+.btn-login:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(74, 102, 68, 0.2);
+}
+
+/* Hata Mesajı */
 .error-msg {
-  color: #ff4455;
-  margin-top: 12px;
-  font-size: 14px;
+  color: var(--error-color);
+  margin-top: 15px;
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 20px; /* Hata yokken zıplama yapmasın */
 }

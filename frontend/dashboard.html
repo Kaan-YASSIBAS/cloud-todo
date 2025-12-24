@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ADKA – Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css" />
+  <title>TaskBerry – Dashboard</title> <link rel="stylesheet" href="dashboard.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -14,7 +13,7 @@
 
     <aside class="left-sidebar">
       <div class="sidebar-header">
-        <h2 class="logo">ADKA</h2>
+        <h2 class="logo">TaskBerry</h2>
       </div>
 
       <div class="sidebar-section">
@@ -22,7 +21,7 @@
         <ul id="weeklyList" class="weekly-list"></ul>
       </div>
 
-      <div class="sidebar-section add-task-wrapper">
+      <div class="sidebar-section add-task-wrapper highlighted-card">
         <h3>+ New Task</h3>
         <div class="add-task-form">
           <input id="taskTitle" placeholder="Task title" />
@@ -61,8 +60,7 @@
         <div class="day-selector" id="daySelector"></div>
       </div>
 
-      <div id="taskGrid" class="task-grid">
-        </div>
+      <div id="taskGrid" class="task-grid"></div>
 
     </main>
 
@@ -70,7 +68,7 @@
       
       <div class="profile-section">
         <div class="profile-header">
-          <img id="profileAvatar" src="assets/user-icon.svg" class="avatar" />
+          <img id="profileAvatar" src="assets/user-icon.jpg" class="avatar" />
           <div class="profile-info">
             <h3 id="profileName">User</h3>
             <p id="profileEmail" class="email">Loading...</p>
@@ -83,18 +81,6 @@
         </button>
       </div>
 
-      <div class="widgets">
-        <div class="widget-card goal-card">
-          <h4>Goal Progress</h4>
-          <div class="progress-container">
-            <div class="progress-circle">
-              <span id="progressValue">0%</span>
-            </div>
-            <p class="progress-note">Keep it up!</p>
-          </div>
-        </div>
-      </div>
-
     </aside>
 
   </div>
@@ -105,24 +91,14 @@
         <h3>Edit Task</h3>
         <button onclick="closeModal()" class="close-icon">&times;</button>
       </div>
-
       <label>Title</label>
       <input id="editTitle" type="text">
-
       <label>Description</label>
       <textarea id="editDesc"></textarea>
-
       <div class="row">
-        <div>
-          <label>Date</label>
-          <input id="editDate" type="date">
-        </div>
-        <div>
-          <label>Time</label>
-          <input id="editTime" type="time">
-        </div>
+        <div><label>Date</label><input id="editDate" type="date"></div>
+        <div><label>Time</label><input id="editTime" type="time"></div>
       </div>
-
       <div class="modal-actions">
         <button onclick="saveEdit()" class="btn-save">Save Changes</button>
       </div>
