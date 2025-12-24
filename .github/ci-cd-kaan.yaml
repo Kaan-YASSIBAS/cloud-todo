@@ -1,0 +1,107 @@
+name: CI/CD (per-service SemVer -> OpenShift)
+
+on:
+  push:
+    tags:
+      - "auth-v*"
+      - "task-v*"
+      - "frontend-v*"
+  workflow_dispatch: {}
+
+env:
+  REGISTRY: docker.io
+  IMAGE_OWNER: ${{ secrets.DOCKERHUB_USERNAME }}
+  IMAGE_REPO: cloud-todo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine component + version from tag
+        id: meta
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"              # auth-v1.0.8
+          COMPONENT="${TAG%%-v*}"               # auth
+          VERSION="${TAG#*-v}"                  # 1.0.8
+          echo "COMPONENT=$COMPONENT" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push auth-service
+        if: steps.meta.outputs.COMPONENT == 'auth'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./auth-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-v${{ steps.meta.outputs.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-latest
+
+      - name: Build & push task-service
+        if: steps.meta.outputs.COMPONENT == 'task'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./task-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-v${{ steps.meta.outputs.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-latest
+
+      - name: Build & push frontend
+        if: steps.meta.outputs.COMPONENT == 'frontend'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-v${{ steps.meta.outputs.VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-latest
+
+      - name: Install oc
+        run: |
+          curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz -o oc.tar.gz
+          tar -xzf oc.tar.gz
+          sudo mv oc /usr/local/bin/oc
+          oc version --client
+
+      - name: Login & select project
+        run: |
+          oc login "${{ secrets.OPENSHIFT_SERVER }}" --token="${{ secrets.OPENSHIFT_TOKEN_KAAN }}" --insecure-skip-tls-verify=true
+          oc project "${{ secrets.OPENSHIFT_NAMESPACE_KAAN }}"
+
+      - name: Scale up core deploys
+        run: |
+          oc scale deploy/auth-service --replicas=1 || true
+          oc scale deploy/task-service --replicas=1 || true
+          oc scale deploy/frontend --replicas=1 || true
+
+      - name: Deploy auth
+        if: steps.meta.outputs.COMPONENT == 'auth'
+        run: |
+          oc set image deploy/auth-service auth-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-v${{ steps.meta.outputs.VERSION }}
+          oc rollout status deploy/auth-service --timeout=300s
+
+      - name: Deploy task
+        if: steps.meta.outputs.COMPONENT == 'task'
+        run: |
+          oc set image deploy/task-service task-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-v${{ steps.meta.outputs.VERSION }}
+          oc rollout status deploy/task-service --timeout=300s
+
+      - name: Deploy frontend
+        if: steps.meta.outputs.COMPONENT == 'frontend'
+        run: |
+          oc set image deploy/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-v${{ steps.meta.outputs.VERSION }}
+          oc rollout status deploy/frontend --timeout=300s
