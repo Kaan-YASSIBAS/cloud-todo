@@ -18,6 +18,7 @@ from app.logging_loki_config import setup_logging
 import logging
 
 
+# Logging setup
 logger = logging.getLogger("task")
 
 setup_logging()
