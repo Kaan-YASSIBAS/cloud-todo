@@ -14,5 +14,5 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         with:
-          command: manifest
+          manifest: true
           target-branch: kaan-branch
