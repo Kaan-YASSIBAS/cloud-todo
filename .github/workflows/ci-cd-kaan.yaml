@@ -1,13 +1,16 @@
 name: CI/CD (per-service SemVer -> OpenShift)
 
 on:
-  push:
-    branches: ["kaan-branch"]
-    tags:
-      - "auth-v*"
-      - "task-v*"
-      - "frontend-v*"
-  workflow_dispatch: {}
+  release:
+    types: [published, released]
+
+  # 2) Optional manual trigger
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to deploy (e.g., task-v1.0.5). If left empty, ref_name will be used."
+        required: false
+        default: ""
 
 env:
   REGISTRY: docker.io
@@ -22,15 +25,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Determine tag name
+        id: tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          elif [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "Using TAG=$TAG"
+
       - name: Determine component + version from tag
         id: meta
         shell: bash
         run: |
-          TAG="${GITHUB_REF_NAME}"              # auth-v1.0.8
-          COMPONENT="${TAG%%-v*}"               # auth
-          VERSION="${TAG#*-v}"                  # 1.0.8
+          TAG="${{ steps.tag.outputs.TAG }}"     # auth-v1.0.8 / task-v1.0.5 / frontend-v1.0.5
+          COMPONENT="${TAG%%-v*}"                # auth / task / frontend
+          VERSION="${TAG#*-v}"                   # 1.0.8 / 1.0.5
+
           echo "COMPONENT=$COMPONENT" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+          echo "COMPONENT=$COMPONENT"
+          echo "VERSION=$VERSION"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
