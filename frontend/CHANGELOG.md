@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/Kaan-YASSIBAS/cloud-todo/compare/frontend-v1.0.5...frontend-v1.0.6) (2025-12-25)
+
+
+### Bug Fixes
+
+* **frontend:** header ui update ([319ee85](https://github.com/Kaan-YASSIBAS/cloud-todo/commit/319ee85e645e78f844aab732e4e4e2e78521aa69))
+
 ## [1.0.5](https://github.com/Kaan-YASSIBAS/cloud-todo/compare/frontend-v1.0.4...frontend-v1.0.5) (2025-12-24)
 
 
