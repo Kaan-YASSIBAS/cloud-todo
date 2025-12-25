@@ -3,4 +3,3 @@ window.APP_CONFIG = {
   TASK_URL: "https://task-service-kyassibas-dev.apps.rm2.thpm.p1.openshiftapps.com",
 };
 
-// ci-cd test

@@ -19,7 +19,6 @@ from app.logging_loki_config import setup_logging
 import logging
 
 
-# Setup logging
 logger = logging.getLogger("auth")
 logger.info("Auth service started (Loki logging enabled)")
 
