@@ -2,6 +2,7 @@ name: CI/CD (per-service SemVer -> OpenShift)
 
 on:
   push:
+    branches: ["kaan-branch"]
     tags:
       - "auth-v*"
       - "task-v*"
