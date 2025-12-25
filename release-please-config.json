@@ -1,0 +1,15 @@
+{
+  "bootstrap-sha": "",
+  "release-type": "simple",
+  "packages": {
+    "auth-service": {
+      "component": "auth"
+    },
+    "task-service": {
+      "component": "task"
+    },
+    "frontend": {
+      "component": "frontend"
+    }
+  }
+}
