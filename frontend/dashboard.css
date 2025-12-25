@@ -1,344 +1,426 @@
 /* ---------- GLOBAL ---------- */
+:root {
+  --bg-color: #FDFBF7;
+  --sidebar-bg: #FFFFFF;
+  --text-main: #2D2D2D;
+  --text-muted: #888888;
+  --accent: #1e1e1e;
+  --border-radius: 20px;
+  
+  /* YENİ "MATCHA STRAWBERRY" PALETİ */
+  --card-1: #F4C7D0; /* Açık Pembe */
+  --card-2: #9FAA74; /* Fıstık Yeşili */
+  --card-3: #FCEBF1; /* Çok Açık Pembe */
+  --card-4: #ECE3D2; /* Krem/Bej */
+  --card-5: #C66F80; /* Koyu Gül Kurusu */
+  --card-6: #4A6644; /* Koyu Matcha Yeşili */
+  --card-7: #D7DAB3; /* Açık Yeşil/Sarı */
+}
 
 body {
   margin: 0;
   font-family: "Poppins", sans-serif;
-  background: linear-gradient(135deg, #d9afd9 0%, #97d9e1 100%);
+  background-color: var(--bg-color);
+  color: var(--text-main);
   height: 100vh;
   overflow: hidden;
 }
 
-/* Layout grid */
+/* Layout Grid */
 .layout {
   display: grid;
-  grid-template-columns: 220px 1fr 260px;
+  grid-template-columns: 280px 1fr 280px; /* Sol menüyü biraz genişlettik */
   height: 100vh;
-  backdrop-filter: blur(6px);
-  overflow: hidden;
+  gap: 0;
 }
 
 /* ---------- LEFT SIDEBAR ---------- */
-
 .left-sidebar {
-  padding: 18px;
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(10px);
-  overflow-y: auto;
+  background: var(--bg-color);
+  padding: 30px;
+  border-right: 1px solid rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .logo {
-  margin-bottom: 15px;
+  font-size: 26px;
   font-weight: 700;
-  font-size: 22px;
-  color: #6C63FF;
+  color: var(--text-main);
+  margin: 0;
 }
 
-/* Weekly list */
+.sidebar-section h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 15px;
+}
+
+/* Weekly List */
+.weekly-list {
+  padding: 0;
+  margin: 0;
+}
+
 .weekly-list li {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 8px 10px;
-  border-radius: 10px;
-  margin-bottom: 6px;
-  font-size: 13px;
-  font-weight: 500;
   list-style: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  font-size: 13px;
+  color: var(--text-main);
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
 }
 
-/* Add task box */
-.add-task input,
-.add-task textarea {
+/* --- YENİ: VURGULANMIŞ ADD TASK KARTI --- */
+.highlighted-card {
+  background: var(--card-3); /* Çok açık pembe arka plan */
+  padding: 25px;
+  border-radius: 20px;
+  border: 2px solid var(--card-1); /* Açık pembe çerçeve */
+  box-shadow: 0 8px 20px rgba(198, 111, 128, 0.1); /* Hafif pembe gölge */
+}
+.highlighted-card h3 {
+  color: var(--card-5); /* Başlık rengi koyu gül kurusu */
+  font-weight: 700;
+}
+
+/* Add Task Form Inputs */
+.add-task-form input,
+.add-task-form textarea {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(255, 255, 255, 0.65);
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  font-family: inherit;
   font-size: 13px;
+  transition: 0.2s;
+}
+/* Input odaklanınca çerçeve rengi palete uyumlu olsun */
+.add-task-form input:focus, .add-task-form textarea:focus {
+  outline: none;
+  border-color: var(--card-1);
+}
+
+.date-time-row {
+  display: flex;
+  gap: 8px;
 }
 
 .btn-add {
   width: 100%;
-  padding: 10px;
-  background: #6C63FF;
+  background: var(--card-5); /* Buton rengi koyu gül kurusu */
   color: white;
+  padding: 12px;
+  border-radius: 12px;
   border: none;
-  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  margin-top: 5px;
+  transition: 0.2s;
+}
+.btn-add:hover { background: var(--card-6); /* Hover'da koyu yeşil */ }
+
+
+/* ---------- MAIN CONTENT ---------- */
+.main-content {
+  padding: 30px 40px;
+  overflow-y: auto;
 }
 
-/* ---------- TIMELINE PANEL ---------- */
-
-.timeline-panel {
-  padding: 25px 30px;
-  overflow-y: scroll;
-  height: 100vh;
-}
-
-/* Week navigation */
-.top-date-row {
+/* Header */
+.top-header {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 15px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 30px;
 }
 
-.week-btn {
-  padding: 6px 10px;
-  border-radius: 8px;
+.welcome-text h1 {
+  font-size: 32px;
+  margin: 0;
+  font-weight: 600;
+}
+.welcome-text p {
+  margin: 5px 0 0 0;
+  color: var(--text-muted);
+}
+
+.date-controller {
+  display: flex;
+  align-items: center;
   background: white;
+  padding: 5px;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.nav-btn {
+  background: transparent;
   border: none;
   cursor: pointer;
+  padding: 8px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+}
+.week-range-text {
   font-size: 14px;
-}
-
-.week-range {
-  font-weight: 600;
+  font-weight: 500;
   margin: 0 15px;
-  font-size: 15px;
+  min-width: 180px;
+  text-align: center;
 }
 
-/* Day selector */
+/* Day Selector */
+.day-selector-wrapper {
+  margin-bottom: 30px;
+}
 .day-selector {
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 12px;
 }
-
 .day-selector div {
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.75);
-  border-radius: 10px;
+  padding: 10px 20px;
+  background: white;
+  border-radius: 14px;
   cursor: pointer;
   font-weight: 500;
-  font-size: 13px;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: 0.2s;
+  border: 1px solid transparent;
 }
-
+.day-selector div:hover {
+  border-color: var(--card-2);
+}
 .day-selector .active {
-  background: #6C63FF;
+  background: var(--text-main);
   color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* ---------- TIMELINE CLEAN LOOK ---------- */
-
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  padding-left: 0;
-  position: relative;
+/* ---------- TASK GRID ---------- */
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding-bottom: 50px;
 }
 
-.timeline-hour {
-  position: relative;
-  padding-left: 65px;
-  min-height: 40px;
-}
-
-.timeline-hour::before {
-  content: attr(data-time);
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform: translateY(-3px);
-  font-weight: 600;
-  color: #444;
-  opacity: 0.6;
-  font-size: 13px;
-}
-
-.timeline-hour::after {
-  content: "";
-  width: 8px;
-  height: 8px;
-  background: #6C63FF;
-  border-radius: 50%;
-  position: absolute;
-  left: 50px;
-  top: 4px;
-  box-shadow: 0 0 8px rgba(108, 99, 255, 0.6);
-}
-
-/* ---------- TASK CARD ---------- */
-
+/* Card Styles */
 .task-card {
   background: white;
-  border-radius: 12px;
-  padding: 14px 18px;
-  width: 70%;
-  max-width: 700px;
-  margin-top: 5px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border-left: 5px solid #7b5cff;
-  transition: 0.25s ease;
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.05); /* Hafif bir çerçeve ekledik */
 }
 
 .task-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+/* YENİ RENK PALETİ SINIFLARI */
+.pastel-1 { background-color: var(--card-1); }
+.pastel-2 { background-color: var(--card-2); }
+.pastel-3 { background-color: var(--card-3); }
+.pastel-4 { background-color: var(--card-4); }
+.pastel-5 { background-color: var(--card-5); color: white; } /* Koyu renklerde metni beyaz yap */
+.pastel-6 { background-color: var(--card-6); color: white; }
+.pastel-7 { background-color: var(--card-7); }
+
+/* Koyu renkli kartlarda başlık ve ikon renklerini aç */
+.pastel-5 .task-title, .pastel-6 .task-title { color: white; }
+.pastel-5 .task-desc, .pastel-6 .task-desc { color: rgba(255,255,255,0.8); }
+.pastel-5 .task-time-badge, .pastel-6 .task-time-badge { background: rgba(0,0,0,0.2); color: white; }
+
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.task-time-badge {
+  background: rgba(255,255,255,0.6);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
 }
 
 .task-title {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
-  color: #1f1f1f;
+  margin-bottom: 6px;
+  color: #222;
+  line-height: 1.3;
 }
 
 .task-desc {
-  margin-top: 4px;
   font-size: 13px;
   color: #555;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  flex-grow: 1;
 }
 
-.task-time {
-  font-size: 13px;
-  font-weight: 600;
-  color: #7b5cff;
-  margin-bottom: 4px;
+.card-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.7);
+  transition: 0.2s;
+  font-size: 14px;
+  color: #555;
+}
+.icon-btn:hover { background: white; transform: scale(1.1); color: #000; }
+.btn-done:hover { color: #2ecc71; }
+.btn-edit:hover { color: #f1c40f; }
+.btn-del:hover { color: #e74c3c; }
+
 
 /* ---------- RIGHT SIDEBAR ---------- */
+.right-sidebar {
+  background: white;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Widget gidince yukarı yaslansın */
+  gap: 30px;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-header {
+  text-align: center;
+  background: var(--bg-color);
+  padding: 20px;
+  border-radius: 24px;
+}
+
 .avatar {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  object-fit: cover;
-  background: rgb(224, 176, 222);
-  padding: 10px;
+  margin-bottom: 10px;
 }
 
+.profile-info h3 { margin: 0; font-size: 18px; }
+.profile-info p { margin: 5px 0 0 0; font-size: 13px; color: var(--text-muted); }
 
-.right-sidebar {
-  padding: 18px;
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(10px);
-  overflow-y: auto;
-}
-
-.profile-card,
-.goal-card {
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 14px;
-  padding: 18px;
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.progress-circle {
-  width: 85px;
-  height: 85px;
-  border: 8px solid #6C63FF;
-  margin: 0 auto;
-  border-radius: 50%;
+/* Logout Button */
+.btn-logout {
   display: flex;
-  justify-content: center;
   align-items: center;
-}
-
-/* Buttons inside task cards */
-.task-actions {
-  margin-top: 10px;
-  display: flex;
+  justify-content: center;
   gap: 8px;
-}
-
-.task-actions button {
-  padding: 5px 8px;
-  border: none;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #fee;
+  background: #fff5f5;
+  color: #e74c3c;
+  border-radius: 12px;
   cursor: pointer;
-  border-radius: 6px;
-  font-size: 13px;
+  font-weight: 600;
   transition: 0.2s;
 }
-
-.btn-complete {
-  background: #6CFF78;
-}
-.btn-complete:hover {
-  background: #4ed35c;
-}
-
-.btn-edit {
-  background: #FFD66C;
-}
-.btn-edit:hover {
-  background: #e6bd55;
-}
-
-.btn-delete {
-  background: #FF6C6C;
+.btn-logout:hover {
+  background: #e74c3c;
   color: white;
 }
-.btn-delete:hover {
-  background: #d95757;
-}
-/* ---------- EDIT MODAL ---------- */
 
+/* GOAL WIDGET STİLLERİ SİLİNDİ */
+
+/* ---------- MODAL (Aynı) ---------- */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 999;
 }
-
-.hidden {
-  display: none !important;
-}
+.hidden { display: none !important; }
 
 .modal-content {
   background: white;
-  padding: 25px;
-  width: 350px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  padding: 30px;
+  width: 400px;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
 }
-
-.modal-content h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-}
-
-.modal-content label {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.modal-content input,
-.modal-content textarea {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.modal-actions {
+.modal-header {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
-
+.close-icon {
+  background: none; border: none; font-size: 24px; cursor: pointer;
+}
+.modal-content label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--text-muted);
+}
+.modal-content input, .modal-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  font-family: inherit;
+}
+.row { display: flex; gap: 10px; }
 .btn-save {
-  background: #6C63FF;
+  width: 100%;
+  background: var(--text-main);
   color: white;
-  padding: 8px 14px;
+  padding: 12px;
+  border-radius: 12px;
   border: none;
-  border-radius: 8px;
   cursor: pointer;
 }
 
-.btn-cancel {
-  background: #ddd;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }

@@ -3,36 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ADKA – Login</title>
+  <title>TaskBerry – Login</title>
   <link rel="stylesheet" href="login.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-  <div class="bg"></div>
-
-  <div class="login-container">
-    <div class="icon-circle">
-      <img src="assets/user-icon.svg" alt="user" />
-    </div>
-
-    <h2 class="title">Welcome to <span>ADKA</span></h2>
-
-    <div class="input-group">
-      <label>Email or Username</label>
-      <input id="username" type="text" placeholder="Enter your username" />
-    </div>
-
-    <div class="input-group">
-      <label>Password</label>
-      <input id="password" type="password" placeholder="Enter your password" />
-    </div>
-
-    <button onclick="handleLogin()" class="login-btn">LOGIN</button>
-
-    <p id="error" class="error-msg"></p>
-  </div>
   
+  <div class="login-page">
+    
+    <div class="login-card">
+      
+      <div class="login-header">
+        <div class="icon-circle">
+          <img src="assets/user-icon.jpg" alt="User Icon" class="user-avatar">
+        </div>
+        <h2 class="title">Welcome to <span>TaskBerry</span></h2>
+        <p class="subtitle">Please login to continue</p>
+      </div>
+
+      <div class="form-content">
+        <div class="input-group">
+          <label>Email or Username</label>
+          <input id="username" type="text" placeholder="Enter your username" />
+        </div>
+        
+        <div class="input-group">
+          <label>Password</label>
+          <input id="password" type="password" placeholder="Enter your password" />
+        </div>
+
+        <button onclick="handleLogin()" class="btn-login">LOGIN</button>
+        
+        <p id="error" class="error-msg"></p>
+      </div>
+
+    </div>
+  </div>
+
   <script src="config.js"></script>
   <script src="main.js"></script>
 </body>
