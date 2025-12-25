@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/Kaan-YASSIBAS/cloud-todo/compare/task-v1.0.4...task-v1.0.5) (2025-12-25)
+
+
+### Bug Fixes
+
+* **task:** trigger deploy test ([52dc071](https://github.com/Kaan-YASSIBAS/cloud-todo/commit/52dc0719b846b0b1f99b03355a45dabe0f2ad006))
+
 ## [1.0.4](https://github.com/Kaan-YASSIBAS/cloud-todo/compare/task-v1.0.3...task-v1.0.4) (2025-12-24)
 
 
