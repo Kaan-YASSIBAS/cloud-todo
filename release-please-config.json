@@ -1,15 +1,20 @@
 {
-  "bootstrap-sha": "",
   "release-type": "simple",
   "packages": {
     "auth-service": {
-      "component": "auth"
+      "path": "auth-service",
+      "component": "auth",
+      "include-component-in-tag": true
     },
     "task-service": {
-      "component": "task"
+      "path": "task-service",
+      "component": "task",
+      "include-component-in-tag": true
     },
     "frontend": {
-      "component": "frontend"
+      "path": "frontend",
+      "component": "frontend",
+      "include-component-in-tag": true
     }
   }
 }

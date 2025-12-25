@@ -1,4 +1,4 @@
-name: CI/CD (per-service SemVer -> OpenShift)
+name: CI/CD (per-service SemVer + kaan-branch dev deploy -> OpenShift)
 
 on:
   push:
@@ -6,13 +6,17 @@ on:
       - "auth-v*"
       - "task-v*"
       - "frontend-v*"
+    branches:
+      - "kaan-branch"
+    paths:
+      - "auth-service/**"
+      - "task-service/**"
+      - "frontend/**"
 
-
-  # 2) Optional manual trigger
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to deploy (e.g., task-v1.0.5). If left empty, ref_name will be used."
+        description: "Tag to deploy (e.g., task-v1.0.5 / frontend-v1.0.6). If left empty, ref_name will be used."
         required: false
         default: ""
 
@@ -28,14 +32,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for git diff between commits
 
-      - name: Determine tag name
-        id: tag
+      # --------------------------
+      # Detect mode: tag vs branch
+      # --------------------------
+      - name: Detect run mode
+        id: mode
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            TAG="${{ github.event.release.tag_name }}"
-          elif [ -n "${{ inputs.tag }}" ]; then
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "MODE=tag" >> $GITHUB_OUTPUT
+          else
+            echo "MODE=branch" >> $GITHUB_OUTPUT
+          fi
+          echo "GITHUB_REF=${GITHUB_REF}"
+          echo "MODE=$(cat $GITHUB_OUTPUT | tail -n 1)"
+
+      # --------------------------
+      # Tag mode: determine TAG
+      # --------------------------
+      - name: Determine tag name (tag mode / manual)
+        id: tag
+        if: steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
             TAG="${{ inputs.tag }}"
           else
             TAG="${GITHUB_REF_NAME}"
@@ -44,13 +67,51 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "Using TAG=$TAG"
 
-      - name: Determine component + version from tag
-        id: meta
+      # --------------------------
+      # Branch mode: detect changed components
+      # --------------------------
+      - name: Detect changed components (branch mode)
+        id: changed
+        if: steps.mode.outputs.MODE == 'branch'
         shell: bash
         run: |
-          TAG="${{ steps.tag.outputs.TAG }}"     # auth-v1.0.8 / task-v1.0.5 / frontend-v1.0.5
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          echo "BEFORE=$BEFORE"
+          echo "AFTER=$AFTER"
+
+          CHANGED="$(git diff --name-only "$BEFORE" "$AFTER" || true)"
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          AUTH=false
+          TASK=false
+          FRONTEND=false
+
+          echo "$CHANGED" | grep -q '^auth-service/' && AUTH=true || true
+          echo "$CHANGED" | grep -q '^task-service/' && TASK=true || true
+          echo "$CHANGED" | grep -q '^frontend/' && FRONTEND=true || true
+
+          echo "AUTH=$AUTH" >> $GITHUB_OUTPUT
+          echo "TASK=$TASK" >> $GITHUB_OUTPUT
+          echo "FRONTEND=$FRONTEND" >> $GITHUB_OUTPUT
+
+          echo "AUTH=$AUTH"
+          echo "TASK=$TASK"
+          echo "FRONTEND=$FRONTEND"
+
+      # --------------------------
+      # Tag mode: parse component + version
+      # --------------------------
+      - name: Parse component + version (tag mode)
+        id: meta
+        if: steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          TAG="${{ steps.tag.outputs.TAG }}"     # auth-v1.0.8 / task-v1.0.5 / frontend-v1.0.6
           COMPONENT="${TAG%%-v*}"                # auth / task / frontend
-          VERSION="${TAG#*-v}"                   # 1.0.8 / 1.0.5
+          VERSION="${TAG#*-v}"                   # 1.0.8 / 1.0.5 / 1.0.6
 
           echo "COMPONENT=$COMPONENT" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
@@ -67,8 +128,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push auth-service
-        if: steps.meta.outputs.COMPONENT == 'auth'
+      # --------------------------
+      # Build & Push (TAG MODE)
+      # --------------------------
+      - name: Build & push auth-service (tag mode)
+        if: (steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch') && steps.meta.outputs.COMPONENT == 'auth'
         uses: docker/build-push-action@v6
         with:
           context: ./auth-service
@@ -77,8 +141,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-v${{ steps.meta.outputs.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-latest
 
-      - name: Build & push task-service
-        if: steps.meta.outputs.COMPONENT == 'task'
+      - name: Build & push task-service (tag mode)
+        if: (steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch') && steps.meta.outputs.COMPONENT == 'task'
         uses: docker/build-push-action@v6
         with:
           context: ./task-service
@@ -87,8 +151,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-v${{ steps.meta.outputs.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-latest
 
-      - name: Build & push frontend
-        if: steps.meta.outputs.COMPONENT == 'frontend'
+      - name: Build & push frontend (tag mode)
+        if: (steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch') && steps.meta.outputs.COMPONENT == 'frontend'
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
@@ -97,6 +161,49 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-v${{ steps.meta.outputs.VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-latest
 
+      # --------------------------
+      # Build & Push (BRANCH MODE)
+      # dev tag = dev-<sha7>
+      # --------------------------
+      - name: Set dev tag
+        id: devtag
+        if: steps.mode.outputs.MODE == 'branch'
+        shell: bash
+        run: |
+          DEV="dev-${GITHUB_SHA::7}"
+          echo "DEV=$DEV" >> $GITHUB_OUTPUT
+          echo "DEV=$DEV"
+
+      - name: Build & push auth-service (branch mode)
+        if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.AUTH == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./auth-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-${{ steps.devtag.outputs.DEV }}
+
+      - name: Build & push task-service (branch mode)
+        if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.TASK == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./task-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-${{ steps.devtag.outputs.DEV }}
+
+      - name: Build & push frontend (branch mode)
+        if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.FRONTEND == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-${{ steps.devtag.outputs.DEV }}
+
+      # --------------------------
+      # OpenShift: install + login
+      # --------------------------
       - name: Install oc
         run: |
           curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz -o oc.tar.gz
@@ -115,20 +222,44 @@ jobs:
           oc scale deploy/task-service --replicas=1 || true
           oc scale deploy/frontend --replicas=1 || true
 
-      - name: Deploy auth
-        if: steps.meta.outputs.COMPONENT == 'auth'
+      # --------------------------
+      # Deploy (TAG MODE)
+      # --------------------------
+      - name: Deploy auth (tag mode)
+        if: (steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch') && steps.meta.outputs.COMPONENT == 'auth'
         run: |
           oc set image deploy/auth-service auth-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-v${{ steps.meta.outputs.VERSION }}
           oc rollout status deploy/auth-service --timeout=300s
 
-      - name: Deploy task
-        if: steps.meta.outputs.COMPONENT == 'task'
+      - name: Deploy task (tag mode)
+        if: (steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch') && steps.meta.outputs.COMPONENT == 'task'
         run: |
           oc set image deploy/task-service task-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-v${{ steps.meta.outputs.VERSION }}
           oc rollout status deploy/task-service --timeout=300s
 
-      - name: Deploy frontend
-        if: steps.meta.outputs.COMPONENT == 'frontend'
+      - name: Deploy frontend (tag mode)
+        if: (steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch') && steps.meta.outputs.COMPONENT == 'frontend'
         run: |
           oc set image deploy/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-v${{ steps.meta.outputs.VERSION }}
+          oc rollout status deploy/frontend --timeout=300s
+
+      # --------------------------
+      # Deploy (BRANCH MODE)
+      # --------------------------
+      - name: Deploy auth (branch mode)
+        if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.AUTH == 'true'
+        run: |
+          oc set image deploy/auth-service auth-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-${{ steps.devtag.outputs.DEV }}
+          oc rollout status deploy/auth-service --timeout=300s
+
+      - name: Deploy task (branch mode)
+        if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.TASK == 'true'
+        run: |
+          oc set image deploy/task-service task-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-${{ steps.devtag.outputs.DEV }}
+          oc rollout status deploy/task-service --timeout=300s
+
+      - name: Deploy frontend (branch mode)
+        if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.FRONTEND == 'true'
+        run: |
+          oc set image deploy/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-${{ steps.devtag.outputs.DEV }}
           oc rollout status deploy/frontend --timeout=300s
