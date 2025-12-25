@@ -1,8 +1,12 @@
 name: CI/CD (per-service SemVer -> OpenShift)
 
 on:
-  release:
-    types: [published, released]
+  push:
+    tags:
+      - "auth-v*"
+      - "task-v*"
+      - "frontend-v*"
+
 
   # 2) Optional manual trigger
   workflow_dispatch:
