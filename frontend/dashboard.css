@@ -424,3 +424,68 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+
+
+/* ---------- WEATHER WIDGET  ---------- */
+.weather-card {
+  margin-top: auto; /* En alta itmek için */
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); /* Hafif gökyüzü/gün batımı gradienti */
+  padding: 25px;
+  border-radius: 24px;
+  color: #444;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+#weatherLoading {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+}
+
+.weather-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+#weatherIcon {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+#weatherTemp {
+  font-size: 36px;
+  font-weight: 700;
+  color: #2D2D2D;
+}
+
+.weather-info h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2D2D2D;
+}
+
+.weather-info p {
+  margin: 2px 0 0 0;
+  font-size: 13px;
+  text-transform: capitalize;
+  opacity: 0.8;
+}
+
+/* Right Sidebar düzenini güncellemek gerekebilir */
+.right-sidebar {
+  background: white;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  /* Justify-content'i değiştirdik ki weather en alta gitsin */
+  justify-content: space-between; 
+  gap: 30px;
+}
