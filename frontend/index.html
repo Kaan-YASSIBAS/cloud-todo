@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TaskBerry – Login</title>
+  <title>TaskBerry – Welcome</title>
   <link rel="stylesheet" href="login.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -19,12 +19,12 @@
           <img src="assets/user-icon.jpg" alt="User Icon" class="user-avatar">
         </div>
         <h2 class="title">Welcome to <span>TaskBerry</span></h2>
-        <p class="subtitle">Please login to continue</p>
+        <p id="page-subtitle" class="subtitle">Please login to continue</p>
       </div>
 
-      <div class="form-content">
+      <div id="login-box" class="form-content">
         <div class="input-group">
-          <label>Email or Username</label>
+          <label> Username</label>
           <input id="username" type="text" placeholder="Enter your username" />
         </div>
         
@@ -35,8 +35,38 @@
 
         <button onclick="handleLogin()" class="btn-login">LOGIN</button>
         
-        <p id="error" class="error-msg"></p>
+        <p class="switch-text">
+          Don't have an account? 
+          <span onclick="toggleForms('register')" class="link-btn">Sign up</span>
+        </p>
       </div>
+
+      <div id="register-box" class="form-content hidden">
+        <div class="input-group">
+          <label>Username</label>
+          <input id="reg-username" type="text" placeholder="Choose a username" />
+        </div>
+
+        <div class="input-group">
+          <label>Email (Optional)</label>
+          <input id="reg-email" type="email" placeholder="example@mail.com" />
+        </div>
+        
+        <div class="input-group">
+          <label>Password</label>
+          <input id="reg-password" type="password" placeholder="Create a password" />
+        </div>
+
+        <button onclick="handleRegister()" class="btn-login btn-register">SIGN UP</button>
+        
+        <p class="switch-text">
+          Already have an account? 
+          <span onclick="toggleForms('login')" class="link-btn">Login</span>
+        </p>
+      </div>
+
+      <p id="error" class="error-msg"></p>
+      <p id="success" class="success-msg"></p>
 
     </div>
   </div>
