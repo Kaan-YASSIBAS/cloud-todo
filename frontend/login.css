@@ -1,14 +1,15 @@
 /* ---------- GLOBAL / VARIABLES ---------- */
 :root {
   /* TaskBerry Renk Paleti */
-  --bg-gradient-1: #FCEBF1; /* Çok Açık Pembe */
-  --bg-gradient-2: #ECE3D2; /* Krem/Bej */
+  --bg-gradient-1: #FCEBF1;
+  --bg-gradient-2: #ECE3D2;
   --card-bg: #FFFFFF;
   --text-main: #2D2D2D;
   --text-muted: #888888;
-  --accent-color: #C66F80; /* Koyu Gül Kurusu */
-  --accent-hover: #4A6644; /* Koyu Matcha Yeşili */
+  --accent-color: #C66F80;
+  --accent-hover: #4A6644;
   --error-color: #e74c3c;
+  --success-color: #2ecc71; /* Yeni: Başarı mesajı rengi */
 }
 
 body {
@@ -16,32 +17,31 @@ body {
   padding: 0;
   font-family: "Poppins", sans-serif;
   height: 100vh;
-  overflow: hidden; /* Kaydırma çubuğunu engeller */
+  overflow: hidden;
 }
 
-/* Tüm sayfayı kaplayan kapsayıcı */
 .login-page {
   width: 100%;
   height: 100vh;
   background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
-  display: flex; /* İçeriği tam ortalamak için */
+  display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Beyaz Kart */
 .login-card {
   background: var(--card-bg);
   padding: 40px;
   width: 100%;
-  max-width: 400px; /* Çok geniş olmasın */
+  max-width: 400px;
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.06);
   text-align: center;
   position: relative;
+  transition: all 0.3s ease;
 }
 
-/* Header Kısmı */
+/* Header */
 .icon-circle {
   width: 90px;
   height: 90px;
@@ -66,26 +66,23 @@ body {
   margin: 0;
   color: var(--text-main);
 }
-
-.title span {
-  color: var(--accent-color);
-}
+.title span { color: var(--accent-color); }
 
 .subtitle {
-  margin: 5px 0 30px;
+  margin: 5px 0 25px;
   font-size: 14px;
   color: var(--text-muted);
 }
 
-/* Form Alanları */
+/* Form Inputs */
 .input-group {
   text-align: left;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .input-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-main);
@@ -93,7 +90,7 @@ body {
 
 .input-group input {
   width: 100%;
-  box-sizing: border-box; /* Padding taşmasın diye */
+  box-sizing: border-box;
   padding: 14px;
   border-radius: 12px;
   border: 2px solid #f0f0f0;
@@ -102,14 +99,13 @@ body {
   font-size: 14px;
   transition: 0.3s;
 }
-
 .input-group input:focus {
   outline: none;
   border-color: var(--accent-color);
   background: white;
 }
 
-/* Login Butonu */
+/* Buttons */
 .btn-login {
   width: 100%;
   padding: 15px;
@@ -123,18 +119,44 @@ body {
   cursor: pointer;
   transition: 0.3s;
 }
-
 .btn-login:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(74, 102, 68, 0.2);
 }
 
-/* Hata Mesajı */
+/* --- YENİ EKLENEN STİLLER --- */
+
+/* Formlar arası geçiş linkleri */
+.switch-text {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.link-btn {
+  color: var(--accent-color);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.link-btn:hover { color: var(--accent-hover); }
+
+/* Gizleme sınıfı */
+.hidden {
+  display: none;
+}
+
+/* Mesajlar */
 .error-msg {
   color: var(--error-color);
   margin-top: 15px;
   font-size: 13px;
   font-weight: 500;
-  min-height: 20px; /* Hata yokken zıplama yapmasın */
+  min-height: 20px;
+}
+.success-msg {
+  color: var(--success-color);
+  margin-top: 15px;
+  font-size: 13px;
+  font-weight: 600;
 }
