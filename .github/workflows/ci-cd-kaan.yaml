@@ -1,22 +1,29 @@
-name: CI/CD (per-service SemVer + kaan-branch latest deploy -> OpenShift)
+name: CI/CD (per-service SemVer tags + kaan-branch SHA deploy -> OpenShift)
 
 on:
+  # Tag mode: semantic version deploy (per component)
   push:
     tags:
       - "auth-v*"
       - "task-v*"
       - "frontend-v*"
+
+    # Branch mode: push to kaan-branch triggers "latest-like" deploy,
+    # but we deploy by SHA to avoid OpenShift/node image cache issues.
     branches:
       - "kaan-branch"
+
+    # Only run when these paths change (saves CI minutes)
     paths:
       - "auth-service/**"
       - "task-service/**"
       - "frontend/**"
 
+  # Manual run (optional): allows deploying any tag you provide
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to deploy (e.g., task-v1.0.5 / frontend-v1.0.6). If left empty, ref_name will be used."
+        description: "Tag to deploy (e.g., task-v1.0.5 / frontend-v1.0.6). If empty, uses ref_name."
         required: false
         default: ""
 
@@ -35,9 +42,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      # --------------------------
+      # ------------------------------------------------------------
       # Detect mode: tag vs branch
-      # --------------------------
+      # ------------------------------------------------------------
       - name: Detect run mode
         id: mode
         shell: bash
@@ -48,9 +55,9 @@ jobs:
             echo "MODE=branch" >> $GITHUB_OUTPUT
           fi
 
-      # --------------------------
-      # Tag mode: determine TAG
-      # --------------------------
+      # ------------------------------------------------------------
+      # Tag mode: determine TAG name (from input or ref)
+      # ------------------------------------------------------------
       - name: Determine tag name
         id: tag
         if: steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch'
@@ -63,9 +70,9 @@ jobs:
           fi
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
-      # --------------------------
-      # Branch mode: detect changed components
-      # --------------------------
+      # ------------------------------------------------------------
+      # Branch mode: detect which components changed
+      # ------------------------------------------------------------
       - name: Detect changed components
         id: changed
         if: steps.mode.outputs.MODE == 'branch'
@@ -85,9 +92,9 @@ jobs:
           echo "TASK=$TASK" >> $GITHUB_OUTPUT
           echo "FRONTEND=$FRONTEND" >> $GITHUB_OUTPUT
 
-      # --------------------------
-      # Tag mode: parse component + version
-      # --------------------------
+      # ------------------------------------------------------------
+      # Tag mode: parse component + version from tag (auth-v1.2.3 etc.)
+      # ------------------------------------------------------------
       - name: Parse component + version
         id: meta
         if: steps.mode.outputs.MODE == 'tag' || github.event_name == 'workflow_dispatch'
@@ -109,9 +116,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ==========================
-      # BUILD & PUSH (TAG MODE)
-      # ==========================
+      # ============================================================
+      # BUILD & PUSH (TAG MODE)  -> immutably versioned tags
+      # ============================================================
       - name: Build & push auth (tag)
         if: steps.meta.outputs.COMPONENT == 'auth'
         uses: docker/build-push-action@v6
@@ -139,9 +146,10 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-v${{ steps.meta.outputs.VERSION }}
 
-      # ==========================
-      # BUILD & PUSH (BRANCH MODE → latest)
-      # ==========================
+      # ============================================================
+      # BUILD & PUSH (BRANCH MODE) -> push SHA tags (guaranteed unique)
+      # Optionally also push "service-latest" tags for convenience.
+      # ============================================================
       - name: Build & push auth (branch)
         if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.AUTH == 'true'
         uses: docker/build-push-action@v6
@@ -149,6 +157,7 @@ jobs:
           context: ./auth-service
           push: true
           tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-latest
 
       - name: Build & push task (branch)
@@ -158,6 +167,7 @@ jobs:
           context: ./task-service
           push: true
           tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-latest
 
       - name: Build & push frontend (branch)
@@ -167,11 +177,12 @@ jobs:
           context: ./frontend
           push: true
           tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-latest
 
-      # --------------------------
-      # OpenShift deploy
-      # --------------------------
+      # ------------------------------------------------------------
+      # OpenShift CLI setup + login
+      # ------------------------------------------------------------
       - name: Install oc
         run: |
           curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz -o oc.tar.gz
@@ -183,9 +194,9 @@ jobs:
           oc login "${{ secrets.OPENSHIFT_SERVER }}" --token="${{ secrets.OPENSHIFT_TOKEN_KAAN }}" --insecure-skip-tls-verify=true
           oc project "${{ secrets.OPENSHIFT_NAMESPACE_KAAN }}"
 
-      # ==========================
-      # DEPLOY (TAG MODE)
-      # ==========================
+      # ============================================================
+      # DEPLOY (TAG MODE) -> deploy exactly the requested version
+      # ============================================================
       - name: Deploy auth (tag)
         if: steps.meta.outputs.COMPONENT == 'auth'
         run: |
@@ -204,26 +215,24 @@ jobs:
           oc set image deploy/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-v${{ steps.meta.outputs.VERSION }}
           oc rollout status deploy/frontend --timeout=300s
 
-      # ==========================
-      # DEPLOY (BRANCH MODE → latest)
-      # ==========================
+      # ============================================================
+      # DEPLOY (BRANCH MODE) -> deploy by SHA (avoids image cache)
+      # IMPORTANT: Do NOT deploy "latest" tags here.
+      # ============================================================
       - name: Deploy auth (branch)
         if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.AUTH == 'true'
         run: |
-          oc set image deploy/auth-service auth-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-service-latest
-          oc rollout restart deploy/auth-service
+          oc set image deploy/auth-service auth-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:auth-${{ github.sha }}
           oc rollout status deploy/auth-service --timeout=300s
 
       - name: Deploy task (branch)
         if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.TASK == 'true'
         run: |
-          oc set image deploy/task-service task-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-service-latest
-          oc rollout restart deploy/task-service
+          oc set image deploy/task-service task-service=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:task-${{ github.sha }}
           oc rollout status deploy/task-service --timeout=300s
 
       - name: Deploy frontend (branch)
         if: steps.mode.outputs.MODE == 'branch' && steps.changed.outputs.FRONTEND == 'true'
         run: |
-          oc set image deploy/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-latest
-          oc rollout restart deploy/frontend
+          oc set image deploy/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_REPO }}:frontend-${{ github.sha }}
           oc rollout status deploy/frontend --timeout=300s
