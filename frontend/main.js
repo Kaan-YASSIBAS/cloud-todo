@@ -1,4 +1,3 @@
-// Senin mevcut config yapını koruyoruz:
 const { AUTH_URL, TASK_URL } = window.APP_CONFIG;
 
 function getToken() {
