@@ -2,6 +2,8 @@
    CONFIG
 ====================================== */
 const { AUTH_URL, TASK_URL } = window.APP_CONFIG;
+// API Key'i buraya ekledik (Güvenlik notu: Gerçek projelerde bu backend'de saklanmalı, ama şimdilik OK)
+const WEATHER_API_KEY = "dff9af6fadeaa4d181375a5e3e81c076"; 
 
 /* ======================================
    GLOBAL STATE
@@ -47,7 +49,53 @@ function logout() {
 }
 
 /* ======================================
-   WEEK CALCULATION
+   WEATHER WIDGET (YENİ)
+====================================== */
+function fetchWeather() {
+  const loadingEl = document.getElementById("weatherLoading");
+  const contentEl = document.getElementById("weatherContent");
+
+  if (!navigator.geolocation) {
+    loadingEl.textContent = "Geolocation not supported";
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    
+    try {
+      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`);
+      const data = await res.json();
+
+      if (data.cod !== 200) throw new Error("Weather error");
+
+      // Verileri yerleştir
+      document.getElementById("weatherCity").textContent = data.name;
+      document.getElementById("weatherTemp").textContent = Math.round(data.main.temp) + "°";
+      document.getElementById("weatherDesc").textContent = data.weather[0].description;
+      
+      // İkonu OpenWeather'dan çek
+      const iconCode = data.weather[0].icon;
+      document.getElementById("weatherIcon").src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+
+      // UI Geçişi
+      loadingEl.classList.add("hidden");
+      contentEl.classList.remove("hidden");
+
+    } catch (err) {
+      console.error(err);
+      loadingEl.textContent = "Weather unavailable";
+    }
+  }, (err) => {
+    // Kullanıcı izin vermezse
+    console.warn("Location permission denied");
+    loadingEl.textContent = "Location needed for weather";
+  });
+}
+
+/* ======================================
+   WEEK CALCULATION (Aynı)
 ====================================== */
 function getMonday(date) {
   const d = new Date(date);
@@ -67,7 +115,7 @@ function nextWeek() {
 }
 
 /* ======================================
-   LOAD WEEK UI
+   LOAD WEEK UI (Aynı)
 ====================================== */
 function loadWeek() {
   const weekRangeEl = document.getElementById("weekRange");
@@ -105,7 +153,7 @@ function loadWeek() {
 }
 
 /* ======================================
-   LOAD TASKS
+   LOAD TASKS (Aynı)
 ====================================== */
 async function loadTasks() {
   const token = localStorage.getItem("token");
@@ -131,7 +179,7 @@ async function loadTasks() {
 }
 
 /* ======================================
-   RENDER: WEEKLY SUMMARY (Sidebar)
+   RENDER: WEEKLY SUMMARY (Aynı)
 ====================================== */
 function renderWeeklySummary(tasks) {
   const list = document.getElementById("weeklyList");
@@ -159,7 +207,7 @@ function renderWeeklySummary(tasks) {
 }
 
 /* ======================================
-   RENDER: TASK GRID (Kart Görünümü)
+   RENDER: TASK GRID (Aynı)
 ====================================== */
 function renderTasksGrid() {
   const grid = document.getElementById("taskGrid");
@@ -179,7 +227,6 @@ function renderTasksGrid() {
         <p>No tasks for this day. Enjoy your free time!</p>
       </div>
     `;
-    // updateProgress çağrısı kaldırıldı çünkü widget silindi
     return;
   }
 
@@ -188,7 +235,6 @@ function renderTasksGrid() {
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     const card = document.createElement("div");
-    // YENİ PALETE GÖRE 7 RENK DÖNGÜSÜ
     const colorClass = `pastel-${(index % 7) + 1}`;
     
     card.className = `task-card ${colorClass}`;
@@ -207,26 +253,18 @@ function renderTasksGrid() {
       <div class="task-desc">${task.description || "No description"}</div>
 
       <div class="card-footer">
-        <button class="icon-btn btn-done" onclick="markDone(${task.id})" title="Complete">
-          ✔
-        </button>
-        <button class="icon-btn btn-edit" onclick="openEdit(${task.id})" title="Edit">
-          ✎
-        </button>
-        <button class="icon-btn btn-del" onclick="deleteTask(${task.id})" title="Delete">
-          🗑
-        </button>
+        <button class="icon-btn btn-done" onclick="markDone(${task.id})" title="Complete">✔</button>
+        <button class="icon-btn btn-edit" onclick="openEdit(${task.id})" title="Edit">✎</button>
+        <button class="icon-btn btn-del" onclick="deleteTask(${task.id})" title="Delete">🗑</button>
       </div>
     `;
 
     grid.appendChild(card);
   });
-
-  // updateProgress çağrısı kaldırıldı
 }
 
 /* ======================================
-   CREATE TASK
+   CREATE TASK (Aynı)
 ====================================== */
 async function createNewTask() {
   const title = document.getElementById("taskTitle").value;
@@ -275,7 +313,7 @@ async function createNewTask() {
 }
 
 /* ======================================
-   EDIT / DELETE / MARK DONE
+   EDIT / DELETE / MARK DONE (Aynı)
 ====================================== */
 function openEdit(id) {
   editingTaskId = id;
@@ -356,4 +394,6 @@ async function deleteTask(id) {
 window.onload = () => {
   checkAuth();
   loadWeek();
+  // Yeni fonksiyonu çağırıyoruz
+  fetchWeather();
 };
