@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: kaanyassibas/cloud-todo:frontend-v1.0.4
+          image: kaanyassibas/cloud-todo:frontend-v1.0.5
           ports:
             - containerPort: 8080
           resources:
