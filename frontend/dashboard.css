@@ -426,7 +426,7 @@ body {
 ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
 
 
-/* ---------- WEATHER WIDGET  ---------- */
+/* ---------- WEATHER WIDGET  --------- */
 .weather-card {
   margin-top: auto; /* En alta itmek için */
   background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); /* Hafif gökyüzü/gün batımı gradienti */
