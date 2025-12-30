@@ -22,18 +22,20 @@
         <ul id="weeklyList" class="weekly-list"></ul>
       </div>
 
-      <div class="sidebar-section add-task-wrapper highlighted-card">
-        <h3>+ New Task</h3>
-        <div class="add-task-form">
-          <input id="taskTitle" placeholder="Task title" />
-          <textarea id="taskDesc" placeholder="Description..."></textarea>
-          
-          <div class="date-time-row">
-            <input id="taskDate" type="date" />
-            <input id="taskTime" type="time" />
+      <div class="weather-card">
+        <div id="weatherLoading">
+          <p>Finding location...</p>
+        </div>
+        
+        <div id="weatherContent" class="hidden">
+          <div class="weather-top">
+            <img id="weatherIcon" src="" alt="icon">
+            <span id="weatherTemp">--°</span>
           </div>
-
-          <button onclick="createNewTask()" class="btn-add">Create Task</button>
+          <div class="weather-info">
+            <h4 id="weatherCity">City</h4>
+            <p id="weatherDesc">Description</p>
+          </div>
         </div>
       </div>
     </aside>
@@ -67,7 +69,7 @@
       
       <div class="profile-section">
         <div class="profile-header">
-          <img id="profileAvatar" src="assets/user-icon.svg" class="avatar" />
+          <img id="profileAvatar" src="assets/user-image.svg" class="avatar" />
           <div class="profile-info">
             <h3 id="profileName">User</h3>
             <p id="profileEmail" class="email">Loading...</p>
@@ -80,20 +82,18 @@
         </button>
       </div>
 
-      <div class="weather-card">
-        <div id="weatherLoading">
-          <p>Finding location...</p>
-        </div>
-        
-        <div id="weatherContent" class="hidden">
-          <div class="weather-top">
-            <img id="weatherIcon" src="" alt="icon">
-            <span id="weatherTemp">--°</span>
+      <div class="sidebar-section add-task-wrapper highlighted-card">
+        <h3>+ New Task</h3>
+        <div class="add-task-form">
+          <input id="taskTitle" placeholder="Task title" />
+          <textarea id="taskDesc" placeholder="Description..."></textarea>
+          
+          <div class="date-time-row">
+            <input id="taskDate" type="date" />
+            <input id="taskTime" type="time" />
           </div>
-          <div class="weather-info">
-            <h4 id="weatherCity">City</h4>
-            <p id="weatherDesc">Description</p>
-          </div>
+
+          <button onclick="createNewTask()" class="btn-add">Create Task</button>
         </div>
       </div>
 

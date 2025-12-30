@@ -29,7 +29,7 @@ body {
 /* Layout Grid */
 .layout {
   display: grid;
-  grid-template-columns: 280px 1fr 280px; /* Sol menüyü biraz genişlettik */
+  grid-template-columns: 280px 1fr 280px; 
   height: 100vh;
   gap: 0;
 }
@@ -75,20 +75,19 @@ body {
   justify-content: space-between;
 }
 
-/* --- YENİ: VURGULANMIŞ ADD TASK KARTI --- */
+/* --- ADD TASK KARTI --- */
 .highlighted-card {
-  background: var(--card-3); /* Çok açık pembe arka plan */
+  background: var(--card-3); 
   padding: 25px;
   border-radius: 20px;
-  border: 2px solid var(--card-1); /* Açık pembe çerçeve */
-  box-shadow: 0 8px 20px rgba(198, 111, 128, 0.1); /* Hafif pembe gölge */
+  border: 2px solid var(--card-1); 
+  box-shadow: 0 8px 20px rgba(198, 111, 128, 0.1); 
 }
 .highlighted-card h3 {
-  color: var(--card-5); /* Başlık rengi koyu gül kurusu */
+  color: var(--card-5); 
   font-weight: 700;
 }
 
-/* Add Task Form Inputs */
 .add-task-form input,
 .add-task-form textarea {
   width: 100%;
@@ -102,20 +101,21 @@ body {
   font-size: 13px;
   transition: 0.2s;
 }
-/* Input odaklanınca çerçeve rengi palete uyumlu olsun */
 .add-task-form input:focus, .add-task-form textarea:focus {
   outline: none;
   border-color: var(--card-1);
 }
 
+/* *** DÜZENLEME: Inputları alt alta alıp taşmayı engelledik *** */
 .date-time-row {
   display: flex;
-  gap: 8px;
+  flex-direction: column; /* Yan yana yerine alt alta */
+  gap: 10px; /* Aralarına boşluk */
 }
 
 .btn-add {
   width: 100%;
-  background: var(--card-5); /* Buton rengi koyu gül kurusu */
+  background: var(--card-5); 
   color: white;
   padding: 12px;
   border-radius: 12px;
@@ -125,7 +125,7 @@ body {
   margin-top: 5px;
   transition: 0.2s;
 }
-.btn-add:hover { background: var(--card-6); /* Hover'da koyu yeşil */ }
+.btn-add:hover { background: var(--card-6); }
 
 
 /* ---------- MAIN CONTENT ---------- */
@@ -227,7 +227,7 @@ body {
   cursor: default;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.05); /* Hafif bir çerçeve ekledik */
+  border: 1px solid rgba(0,0,0,0.05); 
 }
 
 .task-card:hover {
@@ -240,11 +240,10 @@ body {
 .pastel-2 { background-color: var(--card-2); }
 .pastel-3 { background-color: var(--card-3); }
 .pastel-4 { background-color: var(--card-4); }
-.pastel-5 { background-color: var(--card-5); color: white; } /* Koyu renklerde metni beyaz yap */
+.pastel-5 { background-color: var(--card-5); color: white; } 
 .pastel-6 { background-color: var(--card-6); color: white; }
 .pastel-7 { background-color: var(--card-7); }
 
-/* Koyu renkli kartlarda başlık ve ikon renklerini aç */
 .pastel-5 .task-title, .pastel-6 .task-title { color: white; }
 .pastel-5 .task-desc, .pastel-6 .task-desc { color: rgba(255,255,255,0.8); }
 .pastel-5 .task-time-badge, .pastel-6 .task-time-badge { background: rgba(0,0,0,0.2); color: white; }
@@ -314,7 +313,7 @@ body {
   padding: 30px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Widget gidince yukarı yaslansın */
+  justify-content: flex-start; 
   gap: 30px;
 }
 
@@ -362,9 +361,61 @@ body {
   color: white;
 }
 
-/* GOAL WIDGET STİLLERİ SİLİNDİ */
 
-/* ---------- MODAL (Aynı) ---------- */
+/* ---------- WEATHER WIDGET ---------- */
+.weather-card {
+  margin-top: auto; /* Sol menüde en alta iter */
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  padding: 25px;
+  border-radius: 24px;
+  color: #444;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+#weatherLoading {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+}
+
+.weather-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+#weatherIcon {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+#weatherTemp {
+  font-size: 36px;
+  font-weight: 700;
+  color: #2D2D2D;
+}
+
+.weather-info h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2D2D2D;
+}
+
+.weather-info p {
+  margin: 2px 0 0 0;
+  font-size: 13px;
+  text-transform: capitalize;
+  opacity: 0.8;
+}
+
+/* Modal */
 .modal {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -420,72 +471,6 @@ body {
   cursor: pointer;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
-
-
-/* ---------- WEATHER WIDGET  --------- */
-.weather-card {
-  margin-top: auto; /* En alta itmek için */
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); /* Hafif gökyüzü/gün batımı gradienti */
-  padding: 25px;
-  border-radius: 24px;
-  color: #444;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-#weatherLoading {
-  font-size: 13px;
-  color: #666;
-  font-style: italic;
-}
-
-.weather-top {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 5px;
-}
-
-#weatherIcon {
-  width: 60px;
-  height: 60px;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-}
-
-#weatherTemp {
-  font-size: 36px;
-  font-weight: 700;
-  color: #2D2D2D;
-}
-
-.weather-info h4 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #2D2D2D;
-}
-
-.weather-info p {
-  margin: 2px 0 0 0;
-  font-size: 13px;
-  text-transform: capitalize;
-  opacity: 0.8;
-}
-
-/* Right Sidebar düzenini güncellemek gerekebilir */
-.right-sidebar {
-  background: white;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  /* Justify-content'i değiştirdik ki weather en alta gitsin */
-  justify-content: space-between; 
-  gap: 30px;
-}
